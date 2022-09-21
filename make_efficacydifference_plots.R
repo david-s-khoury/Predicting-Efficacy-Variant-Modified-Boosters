@@ -442,8 +442,13 @@ plot_neut_eff_struct_weekly$eff_after_over_var[these_inds] = 'avg_eff_over_cf_ba
 a=str_split(plot_neut_eff_struct_weekly$variable[these_inds],'_',simplify='T')
 plot_neut_eff_struct_weekly$after_over_time[these_inds] = a[,4]
 
-plot_neut_eff_struct_weekly$after_over_time = factor(plot_neut_eff_struct_weekly$after_over_time, labels = c('4w','8w','12w','6m','sixm'))
-  
+if (length(unique(plot_neut_eff_struct_weekly$after_over_time))==2){
+  plot_neut_eff_struct_weekly$after_over_time = factor(plot_neut_eff_struct_weekly$after_over_time, labels = c('6m','sixm'))
+  timelabels = c('6m')
+} else if (length(unique(plot_neut_eff_struct_weekly$after_over_time))==5){
+  plot_neut_eff_struct_weekly$after_over_time = factor(plot_neut_eff_struct_weekly$after_over_time, labels = c('4w','8w','12w','6m','sixm'))
+  timelabels = c('4w','8w','12w','6m')
+}  
 plots_over_time = ggplot(filter(plot_neut_eff_struct_weekly, eff_after_over_var %in% c('avg_eff_over')), aes(x=baseline_sympt_eff,y=pop_multiplier*calc_eff_value, colour=as.factor(GMR), linetype = as.factor(GMR)))+
     geom_ribbon(aes(ymax=pop_multiplier*calc_eff_value,fill=as.factor(GMR)),ymin=0,alpha=alpha_fill,colour=NA)+
     geom_line(mapping = aes(size=as.factor(GMR))) +
@@ -491,7 +496,7 @@ plots_over_time = ggplot(filter(plot_neut_eff_struct_weekly, eff_after_over_var 
   plot_neut_eff_struct_improvement_weekly$after_over_time[these_inds] = str_trunc(a,nchar(a)-2,'left',ellipsis = '')
   
   plot_neut_eff_struct_improvement_weekly = filter(plot_neut_eff_struct_improvement_weekly,eff_after_over_var %in% c('value_avg'))
-  plot_neut_eff_struct_improvement_weekly$after_over_time = factor(plot_neut_eff_struct_improvement_weekly$after_over_time, labels = c('4w','8w','12w','6m'))
+  plot_neut_eff_struct_improvement_weekly$after_over_time = factor(plot_neut_eff_struct_improvement_weekly$after_over_time, labels = timelabels)
   
   
 # This is improvement

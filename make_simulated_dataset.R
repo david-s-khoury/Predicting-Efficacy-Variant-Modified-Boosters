@@ -24,11 +24,15 @@ remake_plot_neut_eff_struct = TRUE # This needs to be set to true for the first 
                                   # but it takes 2-3 mins to run (on my slower machine), 
                                   #so only set to TRUE when you have changed to boosts 
                                   #and / or the fold changes you want to include in the plot
-save_plot_neut_eff_struct = FALSE
+save_plot_neut_eff_struct = TRUE
 reload_plot_neut_eff_struct = FALSE
 
 do_after_sixm = TRUE
 include_average_over_6m = TRUE
+#This is to check results over 4, 8, 12 week period - takes much longer to run 
+do_after_other_weeks = FALSE
+include_average_over_other_weeks = FALSE
+
 
 # Unused
 # Probability of severe disease
@@ -179,7 +183,11 @@ if (reload_plot_neut_eff_struct){
     plot_neut_eff_struct = plot_neut_eff_struct %>% 
       mutate (new_eff_after_6m = ifelse(outcome==outcomes[1],eff_after_time(new_eff),eff_after_time(new_eff,4)),
               baseline_eff_after_sixm = ifelse(outcome==outcomes[1],eff_after_time(baseline_eff),eff_after_time(baseline_eff,4)),
-              
+      )
+  }
+  if(do_after_other_weeks){
+    plot_neut_eff_struct = plot_neut_eff_struct %>% 
+      mutate (
               new_eff_after_4w = ifelse(outcome==outcomes[1],eff_after_time(new_eff,time_period = 4*7),eff_after_time(new_eff,4,time_period = 4*7)),
               baseline_eff_after_4w = ifelse(outcome==outcomes[1],eff_after_time(baseline_eff,time_period = 4*7),eff_after_time(baseline_eff,4,time_period = 4*7)),
               
@@ -195,8 +203,12 @@ if (reload_plot_neut_eff_struct){
     plot_neut_eff_struct = plot_neut_eff_struct %>% 
       mutate (avg_eff_over_6m = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff),eff_avg_over_time(new_eff,4)),
               avg_eff_over_6m_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff),
-                                                   eff_diff_over_time(new_eff, baseline_eff,4)),
-              
+                                                   eff_diff_over_time(new_eff, baseline_eff,4))
+      )
+  }
+  if (include_average_over_other_weeks) {
+    plot_neut_eff_struct = plot_neut_eff_struct %>% 
+      mutate (
               avg_eff_over_4w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 4*7),eff_avg_over_time(new_eff,4,time_period = 4*7)),
               avg_eff_over_4w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 4*7),
                                                    eff_diff_over_time(new_eff, baseline_eff,4,time_period = 4*7)),
@@ -209,14 +221,17 @@ if (reload_plot_neut_eff_struct){
               avg_eff_over_12w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 12*7),
                                                    eff_diff_over_time(new_eff, baseline_eff,4,time_period = 12*7)),
     )
-  }
-  # Don't let anything decay below baseline
+  } 
+  # Don't let anything decay below baseline - really should only do this if do_after_6m or include_average_over_6m are true, but not worrying about that now
   plot_neut_eff_struct = plot_neut_eff_struct %>%
     mutate(new_eff_after_6m = ifelse(new_eff_after_6m<baseline_eff, baseline_eff, new_eff_after_6m),
            baseline_eff_after_sixm = ifelse(baseline_eff_after_sixm<baseline_eff, baseline_eff, baseline_eff_after_sixm),
-           avg_eff_over_6m = ifelse(avg_eff_over_6m<baseline_eff, baseline_eff, avg_eff_over_6m),
+           avg_eff_over_6m = ifelse(avg_eff_over_6m<baseline_eff, baseline_eff, avg_eff_over_6m)
            #avg_eff_over_6m_cf_baseline = ifelse(baseline_eff_after_sixm<baseline_eff, baseline_eff, baseline_eff_after_sixm),
-           
+    )
+  if(do_after_other_weeks & include_average_over_other_weeks){
+    plot_neut_eff_struct = plot_neut_eff_struct %>%
+      mutate(
            new_eff_after_4w = ifelse(new_eff_after_4w<baseline_eff, baseline_eff, new_eff_after_4w),
            baseline_eff_after_4w = ifelse(baseline_eff_after_4w<baseline_eff, baseline_eff, baseline_eff_after_4w),
            avg_eff_over_4w = ifelse(avg_eff_over_4w<baseline_eff, baseline_eff, avg_eff_over_4w),
@@ -229,6 +244,7 @@ if (reload_plot_neut_eff_struct){
            baseline_eff_after_12w = ifelse(baseline_eff_after_12w<baseline_eff, baseline_eff, baseline_eff_after_12w),
            avg_eff_over_12w = ifelse(avg_eff_over_12w<baseline_eff, baseline_eff, avg_eff_over_12w)
     )
+  }
   if(save_plot_neut_eff_struct){
     saveRDS(plot_neut_eff_struct, savename)
   }
@@ -252,7 +268,10 @@ makeNewValues = T
 if(makeNewValues){
   add_cols = 3
   if(do_after_sixm){
-    add_cols = add_cols+8
+    add_cols = add_cols+2
+  } 
+  if(do_after_other_weeks){
+    add_cols = add_cols+6
   }
   plot_neut_eff_struct_improvement = data.frame(matrix(nrow=0,ncol = ncol(plot_neut_eff_struct_improvement_sympt)+add_cols))
   colnames(plot_neut_eff_struct_improvement)<-colnames(c(plot_neut_eff_struct_improvement_sympt,'from','GMRdiff','value'))
@@ -281,19 +300,20 @@ if(makeNewValues){
         if(do_after_sixm){
           plot_neut_eff_struct_improvement_temp$value6m = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$new_eff_after_6m - 
                                                             filter(plot_neut_eff_struct, GMR == boost, outcome == this_outcome)$new_eff_after_6m
+        }
+        if (do_after_other_weeks){
           plot_neut_eff_struct_improvement_temp$value4w = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$new_eff_after_4w - 
             filter(plot_neut_eff_struct, GMR == boost, outcome == this_outcome)$new_eff_after_4w
           plot_neut_eff_struct_improvement_temp$value8w = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$new_eff_after_8w - 
             filter(plot_neut_eff_struct, GMR == boost, outcome == this_outcome)$new_eff_after_8w
           plot_neut_eff_struct_improvement_temp$value12w = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$new_eff_after_12w - 
             filter(plot_neut_eff_struct, GMR == boost, outcome == this_outcome)$new_eff_after_12w
-          
-          
-          
         }
         if(include_average_over_6m){
           plot_neut_eff_struct_improvement_temp$value6mavg = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$avg_eff_over_6m -
                                                             filter(plot_neut_eff_struct, GMR == boost, outcome == this_outcome)$avg_eff_over_6m
+        }
+        if (include_average_over_other_weeks){
           plot_neut_eff_struct_improvement_temp$value4wavg = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$avg_eff_over_4w -
             filter(plot_neut_eff_struct, GMR == boost, outcome == this_outcome)$avg_eff_over_4w
           plot_neut_eff_struct_improvement_temp$value8wavg = filter(plot_neut_eff_struct, GMR == boost*rise, outcome == this_outcome)$avg_eff_over_8w -
