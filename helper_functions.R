@@ -3,6 +3,20 @@ geomean = function(x){
   10^(mean(log10(x),na.rm=T))
 }
 
+estimate_sd_from_CIs<-function(m, low95, high95,CIlim = .95){
+  sdest=NULL
+  for (i in c(1:length(m))){
+    # Efficacies
+    vals = c(low95[i],m[i],high95[i])
+    # Estimate the mean and SD of the log10 neut ratios
+    sd_init = mean((diff(vals))/qnorm((1+CIlim)/2))
+    
+    # Now take this back and see if this is the best estimate
+    sdest[i] = nlm(function(s,m){sum((m+s*c(qnorm((1-CIlim)/2),0,qnorm((1+CIlim)/2))-vals)^2)},p=sd_init,m=m)$estimate
+  }
+  sdest
+}
+
 cis <- function (x,upperlower='l',takeLog=T, rounding = 1){
   if (takeLog){
     x=log10(x)

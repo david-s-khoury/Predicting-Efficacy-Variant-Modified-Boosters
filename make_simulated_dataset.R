@@ -22,7 +22,7 @@ outcomes = c('Symptomatic', 'Severe')
 # This just tells us what to plot / what structures to make
 remake_plot_neut_eff_struct = TRUE # This needs to be set to true for the first run, 
                                   # but it takes 2-3 mins to run (on my slower machine), 
-                                  #so only set to TRUE when you have changed to boosts 
+                                  #so only set to TRUE when you have changed the boosts 
                                   #and / or the fold changes you want to include in the plot
 save_plot_neut_eff_struct = TRUE
 reload_plot_neut_eff_struct = FALSE

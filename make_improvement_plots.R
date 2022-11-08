@@ -9,7 +9,7 @@ improv_title = 'Improvement for Specific Vaccine'
 
 # First plot everything together
 vsv_improvement_plot_all_data = ggplot(vsv_improvement_data_new, aes(x=1,y=VSVimprovement))+
-  geom_boxplot(fill='grey95')+
+  geom_boxplot(fill='grey95',outlier.shape = NA)+
   geom_point(aes(colour=Variant),size=3,position = position_jitter(width=.1))+
   theme_classic()+
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())+
@@ -21,12 +21,12 @@ ggsave(paste0(dir$plots,'ImprovementFromVSV_All.pdf'),vsv_improvement_plot_all_d
 
 # Then split by variant tested - either ancestral or other variants
 vsv_improvement_plot_all_data_by_variant = ggplot(vsv_improvement_data_new, aes(x=VariantGroup,y=VSVimprovement,fill=VariantGroup))+
-  geom_boxplot()+
+  geom_boxplot(outlier.shape = NA)+
   geom_point(aes(colour=Variant, shape=FirstAuthor),size=3,position = position_jitter(width=.1))+
   theme_classic()+
-  #stat_summary(aes(label=round(after_stat(y), 2), fontface='bold'),fun=geomean, geom="text",vjust=-1,position = position_dodge(.9)) +
-  #stat_compare_means(comparisons = list(c('Ancestral','Variant')),paired=F,label=c("p.signif"),method='t.test')+
-  #stat_compare_means(paired=F,label.y = 2.75,method='t.test')+
+  stat_summary(aes(label=round(after_stat(y), 2), fontface='bold'),fun=geomean, geom="text",vjust=-1,position = position_dodge(.9)) +
+  stat_compare_means(comparisons = list(c('Ancestral','Variant')),paired=F,label=c("p.signif"),method='t.test')+
+  stat_compare_means(paired=F,label.y = 2.75,method='t.test')+
   scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
   scale_colour_manual(name='Variant Tested',values = variant_colours)+
   scale_y_continuous(limits = c(.5,3), breaks = seq(.5,3,.5))+
@@ -37,11 +37,11 @@ ggsave(paste0(dir$plots,'ImprovementFromVSV_All_byVariant.pdf'),vsv_improvement_
 
 # Make improvement plots split by matched / unmatched
 vsv_improvement_plot_split_by_matching = ggplot(filter(vsv_improvement_data_new,Variant!='Ancestral'), aes(x=Matching,y=VSVimprovement,fill=Matching))+
-  geom_boxplot()+
+  geom_boxplot(outlier.shape = NA)+
   geom_point(aes(x=Matching,colour=Variant, shape=FirstAuthor),size=3,position = position_jitter(width=.1))+
-  #stat_summary(aes(label=round(after_stat(y), 2), fontface='bold'),fun=geomean, geom="text",vjust=-1,position = position_dodge(0.9)) +
-  #stat_compare_means(comparisons = list(matching_text),paired=F,method='t.test',label=c("p.signif"))+
-  #stat_compare_means(paired=F,method='t.test',label.y=2.75)+
+  stat_summary(aes(label=round(after_stat(y), 2), fontface='bold'),fun=geomean, geom="text",vjust=-1,position = position_dodge(0.9)) +
+  stat_compare_means(comparisons = list(matching_text),paired=F,method='t.test',label=c("p.signif"))+
+  stat_compare_means(paired=F,method='t.test',label.y=2.75)+
   theme_classic()+
   #scale_x_discrete(labels=matching_text)+
   scale_y_continuous(limits = c(.5,3), breaks = seq(.5,3,.5))+
@@ -128,9 +128,9 @@ vsv_improvement_plot_split_by_priorstatus = ggplot(filter(vsv_improvement_data_n
   #stat_compare_means(paired=F,method='t.test',label.y = 2.75)+
   theme_classic()+
   scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
-  scale_fill_manual(name = 'PriorStatus', guide='none',values=c('lightpink','lightblue'))+
+  scale_fill_manual(name = 'PriorStatus', guide='none',values=c('lightpink','thistle','lightblue'))+
   scale_colour_manual(name='Variant Tested',values = variant_colours)+
-  scale_x_discrete(labels=c('None','Previously Infected'))+
+  scale_x_discrete(labels=c('None','Mixed','Previously Infected'))+
   labs(y=y_improv_label,x='Previous SARS-COV-2 Infection')
 print(vsv_improvement_plot_split_by_valency)
 ggsave(paste0(dir$plots,'ImprovementFromVSV_PriorStatusSplit.pdf'),vsv_improvement_plot_split_by_priorstatus, width=6,height=5)

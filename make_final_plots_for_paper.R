@@ -1,7 +1,8 @@
 # Combine plots for figure in paper
 no_title_no_legend = theme(plot.title = element_blank(),legend.position="none")
 no_y_axis = theme(axis.title.y = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank())
-
+facet_adjust = theme(strip.background.x = element_rect(colour=NULL,linetype = 'blank'),
+                           strip.text = element_text(face='bold'))
 # Data focused plot
 paper_data_plot_A = fc_plot_use
 paper_data_plot_B = vsv_improvement_plot_all_data_by_variant
@@ -12,13 +13,23 @@ paper_data_plot=plot_grid(paper_data_plot_A+no_title_no_legend,
                           nrow=1,
                           rel_widths = c(1,1.5,1.5),
                           labels = list('A','B','C'))
+
 # Legend for data focused plot
+dummy_plot = paper_data_plot_B
+other_variant_list =  c('Omicron BA.2.75','Omicron BA.2.75.2','Omicron BA.2','Omicron BA.4.6','OmicronBF.7','OmicronBQ.1.1',  
+                        'OmicronXBB.1','BA.2.75.2','BQ.1.1')
+dummy_plot$data = dummy_plot$data %>% 
+  mutate(Variant=ifelse(Variant %in% other_variant_list, 
+                        'Omicron (other)',Variant))
+dummy_variant_colours = variant_colours[names(variant_colours) %in% unique(dummy_plot$data$Variant)]
+dummy_plot = dummy_plot+scale_colour_manual(values=dummy_variant_colours)
 paper_legend_plot = plot_grid(#as_ggplot(get_legend(paper_data_plot_A)),
-                              as_ggplot(get_legend(paper_data_plot_B)),
+                              as_ggplot(get_legend(dummy_plot)),
                               #as_ggplot(get_legend(sub_plot1a)),
                               ncol=1)
                               #align = 'v', rel_heights=c(1,1.5))
 paper_data_plot_final = plot_grid(paper_data_plot, paper_legend_plot,nrow=1,rel_widths = c(4,1))
+
 #print(paper_data_plot_final)
 ggsave(paste0(dir$plots,'Paper_Data_Plot.pdf'), paper_data_plot_final, width=12,height=6)
 ggsave(paste0(dir$manuscript_plots,'Figure_1_Data_Plot.pdf'), paper_data_plot_final, width=12,height=6)
@@ -47,6 +58,12 @@ supp_plot_1 = plot_grid(vsv_improvement_plot_split_by_valency+no_title_no_legend
                         rel_widths = c(1.1,1,1,.5),
                         labels = list('A','B','C'))
 ggsave(paste0(dir$manuscript_plots,'Figure_S1_ValencyStatusDoses_Plot.pdf'), supp_plot_1, width=14,height=5)
+
+supp_plot_2 = plot_grid(fc_plot_supp+no_title_no_legend+facet_adjust,
+                        paper_legend_plot,nrow=1,rel_widths = c(4,1.5))
+ggsave(paste0(dir$manuscript_plots,'Figure_S2_AllBoosters_Plot.pdf'), supp_plot_2, width=9,height=6)
+
+
 
 
 make_older_plots=F
