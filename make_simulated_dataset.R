@@ -20,12 +20,12 @@ fois = ifelse (multiple_fois, seq(foi_gap,1,foi_gap), foi_use)
 outcomes = c('Symptomatic', 'Severe')
 
 # This just tells us what to plot / what structures to make
-remake_plot_neut_eff_struct = TRUE # This needs to be set to true for the first run, 
+remake_plot_neut_eff_struct = FALSE # This needs to be set to true for the first run, 
                                   # but it takes 2-3 mins to run (on my slower machine), 
                                   #so only set to TRUE when you have changed the boosts 
                                   #and / or the fold changes you want to include in the plot
 save_plot_neut_eff_struct = TRUE
-reload_plot_neut_eff_struct = FALSE
+reload_plot_neut_eff_struct = TRUE
 
 do_after_sixm = TRUE
 include_average_over_6m = TRUE

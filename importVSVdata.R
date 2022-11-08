@@ -78,7 +78,9 @@ vsvdata = vsvdata_read %>%
          BoosterGroup2 = case_when(str_detect(BoosterType,'_')~'Bivalent',
                                    BoosterType =='Ancestral'~'Ancestral',
                                    T~'Monovalent'),
-         PriorDoses = ifelse(nPriorDoses==2,'2 Doses','3 Doses')
+         PriorDoses = case_when(nPriorDoses==2~'2 Doses',
+                                nPriorDoses==3~'3 Doses',
+                                T~'Other')
   )
 vsvdata$PriorDoses = factor(vsvdata$PriorDoses, levels = c('2 Doses','3 Doses'))
 vsvdata$PriorStatusGroup = factor(vsvdata$PriorStatusGroup, levels = c('Uninfected','Mixed','Infected'))

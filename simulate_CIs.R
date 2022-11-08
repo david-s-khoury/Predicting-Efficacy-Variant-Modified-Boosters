@@ -9,7 +9,7 @@
 # 3) for each of the 8 curves, extract the (0.025,.5,.975) quantiles at each efficacy interval
 
 
-calculate_eff_from_neuts_and_params<- function(log10neutRs.matrix, curve_boost_params, min_eff){
+calculate_eff_from_neuts_and_params<- function(log10neutRs.matrix, curve_boost_params, min_eff, method='deborah'){
   log10_boost = curve_boost_params$log10_boost
   log10_VSVimprovement = curve_boost_params$log10_VSVimprovement
   log10_VSVimprovement_matched = curve_boost_params$log10_VSVimprovement_matched
@@ -101,76 +101,113 @@ calculate_eff_after_time_from_neuts_and_params = function(log10neutRs, curve_boo
 }
 
 # This calculates the average efficacy over time based on starting (mean) efficacy (for symptomatic)
-calculate_eff_avg_over_time_from_effs_and_params = function(effs, curve_boost_params, time_period = 364/2, min_eff_vect=0){
+calculate_eff_avg_over_time_from_effs_and_params = function(effs, curve_boost_params, time_period = 364/2, min_eff_vect=0, method = 'deborah'){
   log10neutRs = log10(get_neut_from_efficacy(effs))
-  eff_avg = calculate_eff_avg_over_time_from_neuts_and_params(log10neutRs, curve_boost_params, time_period, min_eff_vect)
+  eff_avg = calculate_eff_avg_over_time_from_neuts_and_params(log10neutRs, curve_boost_params, time_period, min_eff_vect, method)
   eff_avg
 }
 
 # This calculates the average efficacy over time based on starting log10 of neut Ratios (for symptomatic)
-calculate_eff_avg_over_time_from_neuts_and_params = function(log10neutRs, curve_boost_params, time_period = 364/2, min_eff_vect=0){
-  time_series = seq(0,time_period)
-  
+calculate_eff_avg_over_time_from_neuts_and_params = function(log10neutRs, curve_boost_params, time_period = 364/2, min_eff_vect=0, method='deborah'){
   input.effs = get_efficacy_from_neut(10^log10neutRs)
-  effs = calculate_eff_after_time_from_neuts_and_params(log10neutRs, curve_boost_params, time_series, min_eff_vect)
   
+  eff_avg.matrix = matrix(0,ncol=10,nrow=length(log10neutRs))
+  if(method=='deborah'){
+    time_series = seq(0,time_period)
+    effs = calculate_eff_after_time_from_neuts_and_params(log10neutRs, curve_boost_params, time_series, min_eff_vect)
   
-  ############
-  # Check from here
-  ##########
-  
-  # Now need to integrate for each list entry and each row of that matrix.
-  
-  eff_avg.matrix = matrix(0,ncol=length(effs),nrow=length(log10neutRs))
+    for (eff.type.num in c(1:length(effs))){
+      eff.type = names(effs)[eff.type.num]
+      for (input.eff.num in c(1:length(input.effs))){
+        input.eff = input.effs[input.eff.num]
+        efficacy.series = effs[[eff.type.num]][input.eff.num,]
+        eff_avg.matrix[input.eff.num,eff.type.num] = integrate( splinefun(time_series,efficacy.series), 0, time_period)$value/time_period
+      }
+      
+    }
+  } else if (method=='david'){
+    effs = calculate_eff_after_time_from_neuts_and_params(log10neutRs, curve_boost_params, time_period, min_eff_vect, method='david')
+  }
+    
   colnames(eff_avg.matrix) = names(effs)
   rownames(eff_avg.matrix) = 100*round(input.effs,3)
-  for (eff.type.num in c(1:length(effs))){
-    eff.type = names(effs)[eff.type.num]
-    for (input.eff.num in c(1:length(input.effs))){
-      input.eff = input.effs[input.eff.num]
-      efficacy.series = effs[[eff.type.num]][input.eff.num,]
-      eff_avg.matrix[input.eff.num,eff.type.num] = integrate( splinefun(time_series,efficacy.series), 0, time_period)$value/time_period
-    }
     
-  }
   eff_avg.matrix
 }
 
 
 
+makeParams = T
+makeDeborahsEff=T
+makeDavidsEff=F
 
-if(T){
-mean_log10boost = mean(anc_boost_log10fc)
-sd_log10boost = sd(anc_boost_log10fc)
-
-mean_log10VSVimprovement = mean(log10(vsv_improvement_variant))
-sd_log10VSVimprovement = sd(log10(vsv_improvement_variant))
-mean_log10VSVimprovement_matched = mean(log10(vsv_improvement_variant_matched))
-sd_log10VSVimprovement_matched = sd(log10(vsv_improvement_variant_matched))
-mean_log10VSVimprovement_nonmatched = mean(log10(vsv_improvement_variant_nonmatched))
-sd_log10VSVimprovement_nonmatched = sd(log10(vsv_improvement_variant_nonmatched))
-
-
-boost.improv.params = c(mean_log10boost,sd_log10boost,
-                        mean_log10VSVimprovement,sd_log10VSVimprovement,
-                        mean_log10VSVimprovement_matched, sd_log10VSVimprovement_matched,
-                        mean_log10VSVimprovement_nonmatched, sd_log10VSVimprovement_nonmatched)
-
-names(boost.improv.params) = c('log10_boost', 'log10_boostSD', 'log10_vsvimprovement', 'log10_vsvimprovementSD',
-                               'log10_vsvimprovement_matched', 'log10_vsvimprovement_matchedSD',
-                               'log10_vsvimprovement_nonmatched', 'log10_vsvimprovement_nonmatchedSD')
-nruns=10
-params = select_parameters_from_distributions(nruns, boost.improv.params)
-
-gap = .1
+nruns=100
+gap = .05
 start_effs = c(0.01,seq(gap,.99,gap),.99)
+
+if(makeParams){
+  mean_log10boost = mean(anc_boost_log10fc)
+  sd_log10boost = sd(anc_boost_log10fc)
+  
+  mean_log10VSVimprovement = mean(log10(vsv_improvement_variant))
+  sd_log10VSVimprovement = sd(log10(vsv_improvement_variant))
+  mean_log10VSVimprovement_matched = mean(log10(vsv_improvement_variant_matched))
+  sd_log10VSVimprovement_matched = sd(log10(vsv_improvement_variant_matched))
+  mean_log10VSVimprovement_nonmatched = mean(log10(vsv_improvement_variant_nonmatched))
+  sd_log10VSVimprovement_nonmatched = sd(log10(vsv_improvement_variant_nonmatched))
+  
+  
+  boost.improv.params = c(mean_log10boost,sd_log10boost,
+                          mean_log10VSVimprovement,sd_log10VSVimprovement,
+                          mean_log10VSVimprovement_matched, sd_log10VSVimprovement_matched,
+                          mean_log10VSVimprovement_nonmatched, sd_log10VSVimprovement_nonmatched)
+  
+  names(boost.improv.params) = c('log10_boost', 'log10_boostSD', 'log10_vsvimprovement', 'log10_vsvimprovementSD',
+                                 'log10_vsvimprovement_matched', 'log10_vsvimprovement_matchedSD',
+                                 'log10_vsvimprovement_nonmatched', 'log10_vsvimprovement_nonmatchedSD')
+  params = select_parameters_from_distributions(nruns, boost.improv.params)
+}
 
 sim_starttime=Sys.time()
 
-effs_avged=list()
+col.names = c("sympt.unboosted","sympt.boosted",  "sympt.boosted.improved",
+              "sympt.boosted.improved.matched","sympt.boosted.improved.nonmatched",  
+              "severe.unboosted", "severe.boosted", "severe.boosted.improved",
+              "severe.boosted.improved.matched", "severe.boosted.improved.nonmatched")
+row.names = 100*round(start_effs,3)
+matrix.names = paste0('param.set.',c(1:nrow(params)))
+#This is an array of the averaged effs
+effs_avged_deb=array(NA,dim=c(length(start_effs), 10,nrow(params)),
+                 dimnames = list(row.names, col.names, matrix.names))
+effs_avged_david=array(NA,dim=c(length(start_effs), 10,nrow(params)),
+                     dimnames = list(row.names, col.names, matrix.names))
+
 for (i in c(1:nrow(params))){
-  effs_avged[[i]] = calculate_eff_avg_over_time_from_effs_and_params(start_effs,params[i,])
+  if(makeDeborahsEff){
+    effs_avged_deb[,,i] = calculate_eff_avg_over_time_from_effs_and_params(start_effs,params[i,])
+  }
+  if(makeDavidsEff){
+    effs_avged_david[,,i] = calculate_eff_avg_over_time_from_effs_and_params(start_effs,params[i,], method='david')
+  }
   print(Sys.time())
+}
+if(makeDeborahsEff){
+  effs_avged = effs_avged_deb
+}else if (makeDavidsEff){
+  effs_avged = effs_avged_david
+}
+lower95.effs_avged = effs_avged[,,1]
+upper95.effs_avged = effs_avged[,,1]
+median.effs_avged = effs_avged[,,1]
+use.quantiles = c(.025,.5,.975)
+
+for(m in c(1:nrow(median.effs_avged))){
+  for (n in c(1:ncol(median.effs_avged))){
+    quantile.values = quantile(effs_avged[m,n,],use.quantiles)
+    lower95.effs_avged[m,n] =  quantile.values[1] 
+    median.effs_avged[m,n] =  quantile.values[2] 
+    upper95.effs_avged[m,n] =  quantile.values[3] 
+  }
 }
 sim_runtime=Sys.time()-sim_starttime
 ## Now we need to combine
@@ -181,11 +218,10 @@ print('Up to here')
 #colnames(sympt_effs) = c('unboosted','boosted','boosted_improved')
 #colnames(severe_effs) = c('unboosted','boosted','boosted_improved')
 
-colMeans(sympt_effs)
-colMeans(severe_effs)
+#colMeans(sympt_effs)
+#colMeans(severe_effs)
 
 sim_endtime=Sys.time()
 sim_runtime=sim_endtime-sim_starttime
 print(paste0('Ran ',nruns,' iterations at 50% eff: RunTime = ',format(round(sim_runtime,2))))
 
-}

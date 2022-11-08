@@ -1,5 +1,27 @@
 # This needs to be run after make plots
 
+# extract boosts with ancestral and variant vaccines
+anc_boost_log10fc = filter(vsvdata,BoosterType=='Ancestral', !is.na(log10foldchange))$log10foldchange
+vsv_boost_log10fc = filter(vsvdata,BoosterGroup1=='Variant',!is.na(log10foldchange))$log10foldchange
+
+# Extract improvement with ancestral and variant vaccines as well as for matched and un-matched
+vsv_improvement_ancestral = filter(vsv_improvement_data_new,VariantGroup=='Ancestral')$VSVimprovement
+vsv_improvement_variant = filter(vsv_improvement_data_new,VariantGroup=='Variant')$VSVimprovement
+vsv_improvement_variant_matched = filter(vsv_improvement_data_new,VariantGroup=='Variant', Matching == matching_text[1])$VSVimprovement
+vsv_improvement_variant_nonmatched = filter(vsv_improvement_data_new,VariantGroup=='Variant', Matching == matching_text[2])$VSVimprovement
+
+# This is where we should extract the matched / unmatched rises if we want to use them instead of the general variant rise
+
+# Define the ancestral boost and set up the list of possible boosts
+ancestral_boost = round(10^mean(anc_boost_log10fc),1)
+boosts = c(1,seq(2,20,2), ancestral_boost)
+
+# Define the vsv rise and set up the list of rises
+vsv_rise = round(geomean(vsv_improvement_variant),2)
+vsv_rise_matched = round(geomean(vsv_improvement_variant_matched),2)
+vsv_rise_nonmatched = round(geomean(vsv_improvement_variant_nonmatched),2)
+vsv_rises = c(vsv_rise,vsv_rise_matched,vsv_rise_nonmatched)
+rises = c(seq(1,2,.25),vsv_rises) # add the matched / unmatched rises here
 
 
 #fold rise text
