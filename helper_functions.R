@@ -1,4 +1,5 @@
 # geometric mean
+source("./AverageOverTimeFunction.R")
 geomean = function(x){
   10^(mean(log10(x),na.rm=T))
 }
@@ -89,7 +90,7 @@ eff_diff_after_time = function(eff1, eff2=0, efficacy_type=3, time_period = 364/
 }
 
 # Calculate the average difference in efficacies over a certain period of time based on the two starting efficacies
-eff_diff_over_time = function(eff_vect1, eff_vect2=0, efficacy_type=3, time_period = 364/2, min_eff_vect1=0, min_eff_vect2=0){
+eff_diff_over_time = function(eff_vect1, eff_vect2=0, efficacy_type=3, time_period = 364/2, min_eff_vect1=0, min_eff_vect2=0, method='lookup'){
   time_series = seq(0,time_period)
   eff_avg_vect = eff_vect1
   if(length(min_eff_vect1)==1){
@@ -98,27 +99,52 @@ eff_diff_over_time = function(eff_vect1, eff_vect2=0, efficacy_type=3, time_peri
   if(length(min_eff_vect2)==1){
     min_eff_vect2 = rep(min_eff_vect2, length(eff_vect2))
   }
-  for (i in c(1:length(eff_vect1))){
-    effs1 = eff_after_time(eff_vect1[i], efficacy_type, time_series, min_eff_vect1[i])
-    effs2 = eff_after_time(eff_vect2[i], efficacy_type, time_series, min_eff_vect2[i])
-    eff_avg_vect[i] = integrate(splinefun(time_series,effs1-effs2), 0, time_period)$value/time_period
+  if(method == 'lookup') {
+    for (i in c(1:length(eff_vect1))){
+      effs1 = eff_after_time(eff_vect1[i], efficacy_type, time_series, min_eff_vect1[i])
+      effs2 = eff_after_time(eff_vect2[i], efficacy_type, time_series, min_eff_vect2[i])
+      eff_avg_vect[i] = integrate(splinefun(time_series,effs1-effs2), 0, time_period)$value/time_period
+    }
+  }
+  else if (method == 'raw'){
+    log10_neutR1 = log10(get_neut_from_efficacy(eff_vect1, efficacy_type))
+    log10_neutR2 = log10(get_neut_from_efficacy(eff_vect1, efficacy_type))
+    if (efficacy_type == 3){
+      effs1 = LogisticModel_Symptomatic_OverTime(log10_neutR1, time_period)
+      effs2 = LogisticModel_Symptomatic_OverTime(log10_neutR2, time_period)
+    } else if (efficacy_type == 4){
+      effs1 = LogisticModel_Severe_OverTime(log10_neutR1, time_period)
+      effs2 = LogisticModel_Severe_OverTime(log10_neutR2, time_period)
+    }
+    eff_avg_vect = effs1-effs2
   }
   eff_avg_vect
 }
 
 # Aferage efficacy over a period of time based ont eh startign efficacies
-eff_avg_over_time = function(eff_vect, efficacy_type=3, time_period = 364/2, min_eff_vect=0){
-  time_series = seq(0,time_period)
-  eff_avg_vect = eff_vect
-  i=1
-  if(length(min_eff_vect)==1){
-    min_eff_vect = rep(min_eff_vect, length(eff_vect))
-  }
-  # This should be done as an apply function for efficiency
-  for (eff in eff_vect){
-    effs = eff_after_time(eff, efficacy_type, time_series, min_eff_vect[i])
-    eff_avg_vect[i] = integrate(splinefun(time_series,effs), 0, time_period)$value/time_period
-    i=i+1
+eff_avg_over_time = function(eff_vect, efficacy_type=3, time_period = 364/2, min_eff_vect=0, method = 'lookup'){
+  # we can either do this using the lookup method, which requires integration over a long time period, 
+  # or via the "raw" method, which includes the analytical calculation
+  if (method == 'lookup'){
+    time_series = seq(0,time_period)
+    eff_avg_vect = eff_vect
+    i=1
+    if(length(min_eff_vect)==1){
+      min_eff_vect = rep(min_eff_vect, length(eff_vect))
+    }
+    # This should be done as an apply function for efficiency
+    for (eff in eff_vect){
+      effs = eff_after_time(eff, efficacy_type, time_series, min_eff_vect[i])
+      eff_avg_vect[i] = integrate(splinefun(time_series,effs), 0, time_period)$value/time_period
+      i=i+1
+    }
+  } else if (method == 'raw'){
+    log10_neutR = log10(get_neut_from_efficacy(eff_vect, efficacy_type))
+    if (efficacy_type == 3){
+      eff_avg_vect = LogisticModel_Symptomatic_OverTime(log10_neutR, time_period)
+    } else if (efficacy_type == 4){
+      eff_avg_vect = LogisticModel_Severe_OverTime(log10_neutR, time_period)
+    }
   }
   eff_avg_vect
 }

@@ -1,4 +1,5 @@
 library(lifecycle)
+library(data.table)
 library(readxl)
 library(stringr)
 library(ggplot2)
@@ -11,14 +12,15 @@ library(lhs)
 library(mvtnorm)
 
 source('./helper_functions.R')
-
+source('./helper_functions_CIs.R')
+source('./WP4_modelImplementationFunctions.R')
 
 # Details for importing / saving data
 sheets = list(vsvdata = 'Sheet1'
               )
 ranges = list(vsvdata='A1:T1000') #(changed from A1:T91 to A1:T1000 after DK check)
 # Maybe should add following columns
-ranges = list(vsvdata='A1:BA1000') #(changed from A1:T91 to A1:T1000 after DK check)
+ranges = list(vsvdata='A1:AH1000') #(changed from A1:T91 to A1:T1000 after DK check)
 dir = list(base = '../',
            code = './',
            data = paste0('./'),
@@ -79,10 +81,10 @@ vsvdata = vsvdata_read %>%
                                    BoosterType =='Ancestral'~'Ancestral',
                                    T~'Monovalent'),
          PriorDoses = case_when(nPriorDoses==2~'2 Doses',
-                                nPriorDoses==3~'3 Doses',
+                                nPriorDoses>=3~'3+ Doses',
                                 T~'Other')
   )
-vsvdata$PriorDoses = factor(vsvdata$PriorDoses, levels = c('2 Doses','3 Doses'))
+vsvdata$PriorDoses = factor(vsvdata$PriorDoses, levels = c('2 Doses','3+ Doses'))
 vsvdata$PriorStatusGroup = factor(vsvdata$PriorStatusGroup, levels = c('Uninfected','Mixed','Infected'))
   
 # The code above introduces a surrogate fold change of the neut value only IF the pre boost neuts weren't recorded.
@@ -174,6 +176,7 @@ study_shape_labels[study_shapes==7] = 'Pfizer (FDA powerpoint)'
 study_shape_labels[study_shapes==3] = paste0(study_shape_labels[study_shapes==3],' (1)')
 study_shape_labels[study_shapes==4] = paste0(study_shape_labels[study_shapes==4],' (2)')
 study_shape_labels[study_shapes==5] = 'Moderna (press release)'
+study_shape_labels[study_shapes==14] = 'Davis Gardiner et. al.'
 study_shape_labels[study_shapes==15] = 'Pfizer (BA.5 press release)'
 study_shapes[study_shapes==15]=35
 

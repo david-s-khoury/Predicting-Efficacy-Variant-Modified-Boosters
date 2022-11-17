@@ -5,11 +5,11 @@ neut_breaks = 10^seq(-5,5,1)
 neut_break_labels = as.character(neut_breaks) 
 improv_labels=paste0(rises,'-fold')
 improv_colours = colorRampPalette(brewer.pal(9, "RdPu"))(8)[5:8]
-pre_boost_label_text='pre-boost population protection from symptomatic infection'
+pre_boost_label_text='pre-boost protection (symptomatic)'
 base_improv_label_text='Percentage point improvement over no boost'
 base_improv_title_text = 'Improvement over no boost'
 y_label_efficacy = 'Protection'
-percentage_point_y_title = 'Percentage point improvement vs ancestral booster'
+percentage_point_y_title = 'Improvement from Variant Booster'
 improv_legend_name = 'Additional protection\n(variant boost vs ancestral)'
 
 theme_for_sim_plots = theme_classic()+
@@ -17,7 +17,7 @@ theme_for_sim_plots = theme_classic()+
                               legend.key.height = unit(30,'pt'))
 fold_improvement_legend_name = 'Predicted Protection'
 x_expand = c(-.02,1.05)
-y_improvement_expand =c(0,15)
+y_improvement_expand =c(0,19)
 
 pop_multiplier=1
 
@@ -228,14 +228,14 @@ if (include_average_over_6m){
     theme_for_sim_plots+
     scale_colour_manual(values=gmr_colours,name=fold_improvement_legend_name, labels = gmr_labels)+
     scale_linetype_manual(values=gmr_linetypes,name=fold_improvement_legend_name, labels = gmr_labels, guide = guide_legend(override.aes = list(fill = "#FFFFFF")))+
-    scale_x_continuous(breaks = percent_breaks,labels = paste0(100*percent_breaks,'%'),expand=c(0,0))+
-    scale_y_continuous(breaks = percent_breaks,labels = paste0(100*percent_breaks,'%'),expand=c(0.1,0))+
+    #scale_x_continuous(breaks = percent_breaks,labels = paste0(100*percent_breaks,'%'),expand=c(0,0))+
+    #scale_y_continuous(breaks = percent_breaks,labels = paste0(100*percent_breaks,'%'),expand=c(0.1,0))+
     labs(title=paste0(base_improv_title_text, ' (Avg over 6m)'), x=pre_boost_label_text, y=base_improv_label_text)+
     facet_wrap(~outcome, scales = 'free_y')+
     geom_segment(data = midpointSymptData, aes(x=baseline_sympt_eff,y=0, xend=baseline_sympt_eff, yend=line_max),colour='black',size=.5,linetype='dashed')+
     geom_segment(data = midpointSymptData, aes(x=0,y=pop_multiplier*avg_eff_over_6m_cf_baseline, xend=baseline_sympt_eff, yend=pop_multiplier*avg_eff_over_6m_cf_baseline),colour='black',size=.5,linetype='dashed')+
     coord_cartesian(xlim = x_expand, expand=F)
-  #print(sub_plot2b)
+  #print(sub_plot2_avg_over_6m)
   ggsave(paste0(dir$plots,'Now_Later_Average_Difference_Saved.pdf'),plot_grid(sub_plot2,sub_plot2_after_6m, sub_plot2_avg_over_6m,nrow=3), width=tall_width,height=tall_height)
 }
 
@@ -342,7 +342,7 @@ midpointSevereImprovementNumbers = filter(filter(plot_neut_eff_struct_gmr_use_im
 midpointSymptImprovementLine = midpointSymptImprovementNumbers %>% filter(GMRdiff == vsv_rises[1])
 midpointSevereImprovementLine = midpointSevereImprovementNumbers %>% filter(GMRdiff == vsv_rises[1])
 line_max_improvement = max(with(plot_neut_eff_struct_gmr_use_improvement,pop_multiplier*value),na.rm=T)
-
+line_max_improvement = y_improvement_expand[2]
 # Improvement subplot
 multiplier = 100
 shift = .35
