@@ -20,12 +20,12 @@ fois = ifelse (multiple_fois, seq(foi_gap,1,foi_gap), foi_use)
 outcomes = c('Symptomatic', 'Severe')
 
 # This just tells us what to plot / what structures to make
-remake_plot_neut_eff_struct = TRUE # This needs to be set to true for the first run, 
+remake_plot_neut_eff_struct = FALSE # This needs to be set to true for the first run, 
                                   # but it takes 2-3 mins to run (on my slower machine), 
-                                  #so only set to TRUE when you have changed to boosts 
+                                  #so only set to TRUE when you have changed the boosts 
                                   #and / or the fold changes you want to include in the plot
 save_plot_neut_eff_struct = TRUE
-reload_plot_neut_eff_struct = FALSE
+reload_plot_neut_eff_struct = !remake_plot_neut_eff_struct
 
 do_after_sixm = TRUE
 include_average_over_6m = TRUE
@@ -170,6 +170,10 @@ neut_eff_struct$outcome = factor(neut_eff_struct$outcome, levels = outcomes)
 gmrs_for_subplots=c(1,ancestral_boost, ancestral_boost*vsv_rises) # add in ancestral_boost*matched / unmated rises
 savename =  paste0('./plot_neut_eff_struct_addweeks_',paste('GMRs',paste(gmrs_for_subplots,collapse ='_'),sep='_'),'.RDS')
 
+
+# Setting the method = raw should make this much faster
+use.method='raw'
+
 if (reload_plot_neut_eff_struct){
   plot_neut_eff_struct = readRDS(savename)
 } else if (remake_plot_neut_eff_struct){
@@ -201,25 +205,26 @@ if (reload_plot_neut_eff_struct){
   
   if (include_average_over_6m){
     plot_neut_eff_struct = plot_neut_eff_struct %>% 
-      mutate (avg_eff_over_6m = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff),eff_avg_over_time(new_eff,4)),
-              avg_eff_over_6m_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff),
-                                                   eff_diff_over_time(new_eff, baseline_eff,4))
+      # This is the old version that takes ages - updated to the new version
+      mutate (avg_eff_over_6m = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff, method=use.method),eff_avg_over_time(new_eff,4, method=use.method)),
+              avg_eff_over_6m_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff, method=use.method),
+                                                   eff_diff_over_time(new_eff, baseline_eff,4, method=use.method))
       )
   }
   if (include_average_over_other_weeks) {
     plot_neut_eff_struct = plot_neut_eff_struct %>% 
       mutate (
-              avg_eff_over_4w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 4*7),eff_avg_over_time(new_eff,4,time_period = 4*7)),
-              avg_eff_over_4w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 4*7),
-                                                   eff_diff_over_time(new_eff, baseline_eff,4,time_period = 4*7)),
+              avg_eff_over_4w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 4*7, method=use.method),eff_avg_over_time(new_eff,4,time_period = 4*7, method=use.method)),
+              avg_eff_over_4w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 4*7, method=use.method),
+                                                   eff_diff_over_time(new_eff, baseline_eff,4,time_period = 4*7, method=use.method)),
               
-              avg_eff_over_8w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 8*7),eff_avg_over_time(new_eff,4,time_period = 8*7)),
-              avg_eff_over_8w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 8*7),
-                                                   eff_diff_over_time(new_eff, baseline_eff,4,time_period = 8*7)),
+              avg_eff_over_8w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 8*7, method=use.method),eff_avg_over_time(new_eff,4,time_period = 8*7, method=use.method)),
+              avg_eff_over_8w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 8*7, method=use.method),
+                                                   eff_diff_over_time(new_eff, baseline_eff,4,time_period = 8*7, method=use.method)),
               
-              avg_eff_over_12w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 12*7),eff_avg_over_time(new_eff,4,time_period = 12*7)),
-              avg_eff_over_12w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 12*7),
-                                                   eff_diff_over_time(new_eff, baseline_eff,4,time_period = 12*7)),
+              avg_eff_over_12w = ifelse(outcome ==outcomes[1],eff_avg_over_time(new_eff,time_period = 12*7, method=use.method),eff_avg_over_time(new_eff,4,time_period = 12*7, method=use.method)),
+              avg_eff_over_12w_cf_baseline = ifelse(outcome == outcomes[1],eff_diff_over_time(new_eff, baseline_eff,time_period = 12*7, method=use.method),
+                                                   eff_diff_over_time(new_eff, baseline_eff,4,time_period = 12*7, method=use.method)),
     )
   } 
   # Don't let anything decay below baseline - really should only do this if do_after_6m or include_average_over_6m are true, but not worrying about that now
