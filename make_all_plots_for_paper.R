@@ -24,6 +24,7 @@ source('./make_efficacydifference_plots.R')
 source('./simulate_CIs.R')
 source('./make_final_plots_for_paper.R')
 source('./make_text_for_paper.R')
+source('./check_p_values')
 
 total_endtime=Sys.time()
 total_runtime=total_endtime-total_starttime

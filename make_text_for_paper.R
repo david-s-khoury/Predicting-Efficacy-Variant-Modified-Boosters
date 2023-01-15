@@ -130,7 +130,16 @@ discussion_text[i] = paste0('we find that an ancestral-based booster giving an '
                             '-',
                             round(filter(quantile.results.combined, baseline_eff==50,eff_type=='sympt.improved.diff')$upper95,rounding_level),
                             ']',
-                            ' protection against symptomatic compared to the ancestral-based vaccine, Fig 2A and C).'
+                            ' protection against symptomatic compared to the ancestral-based vaccine, resulting in ',
+                            round(100*filter(plot_neut_eff_struct_gmr_use, outcome=='Symptomatic', baseline_sympt_eff==.5, GMR==ancestral_boost*vsv_rise)$avg_eff_over_6m,rounding_level),
+                            
+                            '% [95% CI ',
+                            round(filter(quantile.results.combined, baseline_eff==50,eff_type=='sympt.boosted.improved')$lower95,rounding_level),
+                            '-',
+                            round(filter(quantile.results.combined, baseline_eff==50,eff_type=='sympt.boosted.improved')$upper95,rounding_level),
+                            ']',
+                            
+                            ' protection against symptomatic disease (Fig 2A and C).'
                             )
 i=i+1
 
@@ -165,7 +174,16 @@ discussion_text[i] = paste0('A population with 50% protection from symptomatic i
     round(filter(quantile.results.combined, baseline_eff==50,eff_type=='severe.improved.diff')$upper95,rounding_level),
     ', p= <.001]',
     
-    ' of protection from severe COVID-19 compared to an ancestral-based booster, Fig 2B and D). '
+    ' of protection from severe COVID-19 compared to an ancestral-based booster, resulting in ',
+    round(100*filter(plot_neut_eff_struct_gmr_use, outcome=='Severe', baseline_sympt_eff==.5, GMR==ancestral_boost*vsv_rise)$avg_eff_over_6m,rounding_level),
+    
+    '% [95% CI ',
+    round(filter(quantile.results.combined, baseline_eff==50,eff_type=='severe.boosted.improved')$lower95,rounding_level),
+    '-',
+    round(filter(quantile.results.combined, baseline_eff==50,eff_type=='severe.boosted.improved')$upper95,rounding_level),
+    ']',
+    
+    ' protection against severe disease (Fig 2B and D). '
     )
 i=i+1
 

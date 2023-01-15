@@ -4,16 +4,16 @@
 # ploting variables / constants
 fc_breaks=c(1,2,5,10,20,50,100)
 y_label_anc_fold_change='Increase in Neutralisation Titer'
-x_label_anc_fold_change=''
+x_label_anc_fold_change='Booster Type'
 
 # This is the basic fold change plot - which shows the fold change in neuts after boosting.
 fc_plot=ggplot(vsvdata, aes(x=BoosterType,y=log10foldchange))+
   geom_boxplot(outlier.shape=NA)+
   geom_point(mapping=aes(colour=Variant,shape=FirstAuthor),size=3,position = position_jitter(width=.1))+
-  stat_summary(aes(label=round(10^after_stat(y), 1),fontface='bold'),fun=mean, geom="text", vjust=-1,position = position_dodge(0.9)) +
+  stat_summary(aes(label=round(10^after_stat(y), 1),fontface='bold'),fun=length, geom="text", vjust=-1,hjust=1,position = position_dodge(0.9)) +
   #scale_y_continuous(breaks = log10(drop_breaks),labels = drop_breaks)+
   scale_y_continuous(breaks=log10(fc_breaks),labels=fc_breaks)+
-  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
+  scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_colour_manual(name='Variant Tested in vitro',values = variant_colours, guide='none')+
   #scale_fill_manual(values = drop_colours)+
   theme_classic()+
@@ -23,11 +23,12 @@ fc_plot=ggplot(vsvdata, aes(x=BoosterType,y=log10foldchange))+
 ggsave(paste0(dir$plots,'FoldChangeFromVaccines_ByVaccine.pdf'),fc_plot, width=8,height=5)
 
 # This is the plot we are going to use in the manuscript - only ancestral boosting.
+# Changed based on editorial request to inlcude variant boosting as well
 fc_plot_use = fc_plot
-fc_plot_use$data = filter(fc_plot$data,BoosterType == 'Ancestral')
+#fc_plot_use$data = filter(fc_plot$data,BoosterType == 'Ancestral') # Commented due to editorial request
 fc_plot_use$mapping$x = quo(`BoosterGroup1`)
 fc_plot_use = fc_plot_use+
-  scale_x_discrete(labels = 'Ancestral Booster')+
+  scale_x_discrete(labels = c('Ancestral', 'Variant'))+
   theme(axis.text.x = element_text(angle=0,vjust=1,hjust=.5))+
   labs(y=y_label_anc_fold_change,x=x_label_anc_fold_change)
 #print(fc_plot_use)
@@ -104,7 +105,7 @@ fc_plot_supp_gmt = ggplot(filter(vsv_new_data_merged_melted_paired, !is.na(Boost
                        aes(x=BoosterType,y=log10foldchange))+
   geom_boxplot(outlier.shape=NA)+
   geom_point(mapping=aes(colour=Variant,shape=FirstAuthor),size=3, position = position_jitter(0.2))+
-  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
+  scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_colour_manual(name='Variant Tested in vitro',values = variant_colours, guide='none')+
   scale_y_continuous(breaks = c(3,log10(3000),4,log10(30000)), labels=c('1,000','3,000','10,000','30,000'))+
   theme_classic()+
@@ -120,7 +121,7 @@ fc_plot_supp2 = ggplot(filter(vsv_new_data_merged_melted_all, !is.na(BoosterType
                        aes(x=BoosterType,y=log10foldchange))+
   geom_boxplot(outlier.shape=NA)+
   scale_y_continuous(breaks=log10(fc_breaks),labels=fc_breaks)+
-  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
+  scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_colour_manual(name='Variant Tested in vitro',values = variant_colours, guide='none')+
   theme_classic()+
   theme(axis.text.x = element_text(angle=30,vjust=1,hjust=1))+
