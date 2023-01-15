@@ -1,7 +1,7 @@
 
 # Do the fold rise / improvement plots
 
-y_improv_label = 'Benefit of Variant Booster (fold)'
+y_improv_label = 'Improvement of Variant Booster (fold)'
 x_improv_label = 'Strain tested in-vitro'
 x_matching_improv_label = 'Vaccine vs Variant Immunogen'
 x_valency_improv_label = 'Vaccine composition'
@@ -26,11 +26,12 @@ vsv_improvement_plot_all_data_by_variant = ggplot(vsv_improvement_data_new, aes(
   geom_point(aes(colour=Variant, shape=FirstAuthor),size=3,position = position_jitter(width=.1))+
   theme_classic()+
   stat_summary(aes(label=round(10^after_stat(y), 2), fontface='bold'),fun=mean, geom="text",vjust=-1,position = position_dodge(.9)) +
+  #stat_summary(aes(label=round(after_stat(y), 2), fontface='bold'),fun=length, geom="text",vjust=-1,position = position_dodge(.9)) +
   stat_compare_means(comparisons = list(c('Ancestral','Variant')),paired=F,label=c("p.signif"),method='t.test')+
-  stat_compare_means(paired=F,label.y = .6,method='t.test')+
-  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
+  stat_compare_means(paired=F,label.y = .6,method='t.test')+stat_compare_means(paired=F,method='wilcox.test',label.y = .5)+
+  scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_colour_manual(name='Variant Tested',values = variant_colours)+
-  scale_y_continuous(breaks = log10(improv_breaks),labels =improv_breaks) +
+  scale_y_continuous(breaks = log10(improv_breaks),labels =improv_breaks, limits = log10(c(.5,5))) +
   #scale_y_log10()+
   scale_fill_manual(values=c('Ancestral'='darkslategray1','Variant'='darkseagreen1'), guide='none')+
   labs(y=y_improv_label,title=paste0('All variants: ',improv_title),x=x_improv_label)
@@ -42,18 +43,18 @@ vsv_improvement_plot_split_by_matching = ggplot(filter(vsv_improvement_data_new,
   geom_boxplot(aes(alpha=.6),outlier.shape = NA)+
   geom_point(aes(x=Matching,colour=Variant, shape=FirstAuthor),size=3,position = position_jitter(width=.1))+
   stat_summary(aes(label=round(10^after_stat(y), 2), fontface='bold'),fun=mean, geom="text",vjust=-1,position = position_dodge(0.9)) +
+  #stat_summary(aes(label=round(after_stat(y), 2), fontface='bold'),fun=length, geom="text",vjust=-1,position = position_dodge(.9)) +
   stat_compare_means(comparisons = list(matching_text),paired=F,method='t.test',label=c("p.signif"))+
-  stat_compare_means(paired=F,method='t.test',label.y=.63)+
+  stat_compare_means(paired=F,method='t.test',label.y=.63)+stat_compare_means(paired=F,method='wilcox.test',label.y = .5)+
   theme_classic()+
   #scale_x_discrete(labels=matching_text)+
-  #scale_y_continuous(limits = c(.5,3), breaks = seq(.5,3,.5))+
   scale_fill_discrete(name = 'Variant / Booster Match', guide='none')+
   #scale_shape_discrete(name='Vaccine Immunogen vs Variant')+
-  scale_y_continuous(breaks = log10(improv_breaks),labels =improv_breaks) +
-  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
+  scale_y_continuous(breaks = log10(improv_breaks),labels =improv_breaks, limits = log10(c(.5,5))) +
+  scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_colour_manual(name='Variant Tested in vitro',values = variant_colours)+
   labs(y=y_improv_label,title=paste0('Non-Ancestral variants: ',improv_title),x=x_matching_improv_label)
-#print((vsv_improvement_plot_split_by_matching)
+print(vsv_improvement_plot_split_by_matching)
 ggsave(paste0(dir$plots,'ImprovementFromVSV_split_by_matching.pdf'),vsv_improvement_plot_split_by_matching, width=6,height=5)
 
 # Redo these plots with specific immunogens only
@@ -92,7 +93,7 @@ vsv_improvement_plot_split_by_valency = ggplot(filter(vsv_improvement_data_new,V
   geom_point(aes(x=Valency,colour=Variant, shape = FirstAuthor),size=3,position = position_jitter(width=.1))+
   stat_summary(aes(label=round(10^after_stat(y), 2), fontface='bold'),fun=mean, geom="text",vjust=-1,position = position_dodge(0.9)) +
   stat_compare_means(comparisons = list(c('Bivalent','Monovalent')),paired=F,method='t.test',label=c("p.signif"))+
-  stat_compare_means(paired=F,method='t.test',label.y = .75)+
+  stat_compare_means(paired=F,method='t.test',label.y = .75)+stat_compare_means(paired=F,method='wilcox.test',label.y = .8)+   
   theme_classic()+
   scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_fill_manual(name = 'Vaccine composition', guide='none',values=valency_colours)+
@@ -130,7 +131,7 @@ vsv_improvement_plot_split_by_priorstatus = ggplot(filter(vsv_improvement_data_n
   geom_point(aes(x=PriorStatusGroup,colour=Variant, shape = FirstAuthor),size=3,position = position_jitter(width=.1))+
   stat_summary(aes(label=round(10^after_stat(y), 2), fontface='bold'),fun=mean, geom="text",vjust=-1,position = position_dodge(0.9)) +
   stat_compare_means(comparisons = list(c('Infected','Uninfected')),paired=F,method='t.test',label=c("p.signif"))+
-  stat_compare_means(paired=F,method='t.test',label.y = .75)+
+  stat_compare_means(paired=F,method='t.test',label.y = .75)+stat_compare_means(paired=F,method='wilcox.test',label.y = .8)+   
   theme_classic()+
   scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_fill_manual(name = 'PriorStatus', guide='none',values=c('lightpink','lightblue'))+ #'thistle',
@@ -145,8 +146,12 @@ vsv_improvement_plot_split_by_priordoses = ggplot(filter(vsv_improvement_data_ne
   geom_boxplot(outlier.shape = NA)+
   geom_point(aes(x=PriorDoses,colour=Variant, shape = FirstAuthor),size=3,position = position_jitter(width=.1))+
   stat_summary(aes(label=round(10^after_stat(y), 2), fontface='bold'),fun=mean, geom="text",vjust=-1,position = position_dodge(0.9)) +
-  stat_compare_means(comparisons = list(c(1,2)),paired=F,method='t.test',label=c("p.signif"))+
-  stat_compare_means(paired=F,method='t.test',label.y = .75)+
+  stat_summary(aes(label = str_c('n=',round(..y..,2)), y = stage(log10(VSVimprovement), after_stat = log10(.5))),fun=length, geom="text")+
+  
+  #stat_compare_means(comparisons = list(c(1,2)),paired=F,method='t.test',label=c("p.signif"))+
+  stat_compare_means(comparisons = list(c(1,2)),paired=F,method='wilcox.test',label=c("p.signif"))+
+  
+  stat_compare_means(paired=F,method='t.test',label.y = .75)+stat_compare_means(paired=F,method='wilcox.test',label.y = .8)+   
   theme_classic()+
   scale_shape_manual(name = 'Reference',values=study_shapes, labels = study_shape_labels_2)+
   scale_fill_manual(name = 'PriorStatus', guide='none',values=c('thistle','bisque'))+
@@ -154,7 +159,7 @@ vsv_improvement_plot_split_by_priordoses = ggplot(filter(vsv_improvement_data_ne
   scale_y_continuous(breaks = log10(improv_breaks),labels =improv_breaks) +
   #scale_x_discrete(labels=c('None','Prior Infection'))
   labs(y=y_improv_label,x='Previous Vaccination History' )
-#print((vsv_improvement_plot_split_by_priordoses)
+#print(vsv_improvement_plot_split_by_priordoses)
 ggsave(paste0(dir$plots,'ImprovementFromVSV_PriorDosesSplit.pdf'),vsv_improvement_plot_split_by_priordoses, width=6,height=5)
 
 
@@ -167,7 +172,7 @@ vsv_improvement_plot_all_data_by_vaccine = ggplot(vsv_improvement_data_new, aes(
   theme_classic()+
   stat_summary(aes(label=round(10^after_stat(y), 2), fontface='bold'),fun=mean, geom="text",vjust=-1,position = position_dodge(.9)) +
   stat_compare_means(paired=F,label.y = .8,method='anova')+
-  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels)+
+  scale_shape_manual(name = 'Study',values=study_shapes, labels = study_shape_labels_2)+
   scale_colour_manual(name='Variant Tested',values = variant_colours)+
   scale_y_continuous(breaks = log10(improv_breaks),labels =improv_breaks) +
   scale_x_discrete(labels =BoosterTypeNames) +

@@ -13,5 +13,6 @@ make.eff_avged and make.new.params on lines 17 and 18 are set to true, then the 
 6) finalise the plots for the manuscript ('./make_final_plots_for_paper.R')
 and
 7) run a file to generate some of the output text for the manuscript ('./make_text_for_paper.R') 
+8) run a file to check the p-values for the manuscript ('./check_p_values.R') 
 
 The following libraries will need to be installed: readxl, stringr, ggplot2, dplyr, cowplot, stats, reshape2, ggpubr, RColorBrewer, data.table

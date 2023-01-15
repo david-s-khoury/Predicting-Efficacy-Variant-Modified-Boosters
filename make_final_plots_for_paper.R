@@ -12,7 +12,7 @@ paper_data_plot=plot_grid(paper_data_plot_A+no_title_no_legend+large_font_theme 
                           paper_data_plot_B+no_title_no_legend+large_font_theme+ theme(plot.margin = unit(c(4,3,1,0), "lines")), 
                           paper_data_plot_C+no_title_no_legend+no_y_axis+large_font_theme+ theme(plot.margin = unit(c(4,0,1,0), "lines")),
                           nrow=1,
-                          rel_widths = c(1.5,2,1.5),
+                          rel_widths = c(2.3,2.2,1.5),
                           labels = list('A','B','C'))
 
 # Legend for data focused plot
@@ -30,10 +30,10 @@ paper_legend_plot = plot_grid(#as_ggplot(get_legend(paper_data_plot_A)),
                               #as_ggplot(get_legend(sub_plot1a)),
                               ncol=1)
                               #align = 'v', rel_heights=c(1,1.5))
-paper_legend_plot_2col = plot_grid(as_ggplot(get_legend(dummy_plot)$grobs[[1]])+large_font_theme,
+paper_legend_plot_2col = plot_grid(as_ggplot(get_legend(dummy_plot)$grobs[[2]])+large_font_theme,
                                    as_ggplot(get_legend(dummy_plot)$grobs[[3]])+large_font_theme,
                                    ncol=2, align = 'h')
-paper_data_plot_final = plot_grid(paper_data_plot, paper_legend_plot_2col,nrow=1,rel_widths = c(4,1.5))
+paper_data_plot_final = plot_grid(paper_data_plot, paper_legend_plot_2col,nrow=1,rel_widths = c(4.2,1))
 
 #print(paper_data_plot_final)
 ggsave(paste0(dir$plots,'Paper_Data_Plot.pdf'), paper_data_plot_final, width=12,height=6)
@@ -81,15 +81,19 @@ ggsave(paste0(dir$manuscript_plots,'Figure_2_Sim_Plot.pdf'), paper_sim_plot_fina
 #margin
 #c(t,r,b,l)
 supp_plot_BoosterType = plot_grid(vsv_improvement_plot_all_data_by_vaccine+no_title_no_legend+facet_adjust+large_font_theme+
+                                    stat_summary(aes(label = str_c('n=',round(..y..,2)), y = stage(log10(VSVimprovement), after_stat = log10(.5))),fun=length, geom="text") +
                           theme(plot.margin = unit(c(0,2,0,4), "lines")),
                         paper_legend_plot_2col,
                         nrow=1,rel_widths = c(4,2.5))
 ggsave(paste0(dir$manuscript_plots,'Figure_S1_BoosterType_Plot.pdf'), supp_plot_BoosterType, width=10,height=8)
 
 
-supp_plot_ValencyStatusDoses = plot_grid(vsv_improvement_plot_split_by_valency+no_title_no_legend+large_font_theme,
-                        vsv_improvement_plot_split_by_priorstatus+no_title_no_legend+theme(axis.title.y = element_blank())+large_font_theme,
-                        vsv_improvement_plot_split_by_priordoses+no_title_no_legend+theme(axis.title.y = element_blank())+large_font_theme,
+supp_plot_ValencyStatusDoses = plot_grid(vsv_improvement_plot_split_by_valency+no_title_no_legend+large_font_theme+
+                                           stat_summary(aes(label = str_c('n=',round(..y..,2)), y = stage(log10(VSVimprovement), after_stat = log10(.5))),fun=length, geom="text") ,
+                        vsv_improvement_plot_split_by_priorstatus+no_title_no_legend+theme(axis.title.y = element_blank())+large_font_theme+
+                          stat_summary(aes(label = str_c('n=',round(..y..,2)), y = stage(log10(VSVimprovement), after_stat = log10(.5))),fun=length, geom="text") ,
+                        vsv_improvement_plot_split_by_priordoses+no_title_no_legend+theme(axis.title.y = element_blank())+large_font_theme+
+                          stat_summary(aes(label = str_c('n=',round(..y..,2)), y = stage(log10(VSVimprovement), after_stat = log10(.5))),fun=length, geom="text"),
                         paper_legend_plot_2col,
                         nrow=1, 
                         align = 'h',
@@ -99,9 +103,10 @@ ggsave(paste0(dir$manuscript_plots,'Figure_S2_ValencyStatusDoses_Plot.pdf'), sup
 
 
 
-supp_plot_ValencyMatching = plot_grid(vsv_improvement_plot_pure_or_mix2+no_title_no_legend+facet_adjust+large_font_theme,
+supp_plot_ValencyMatching = plot_grid(vsv_improvement_plot_pure_or_mix2+no_title_no_legend+facet_adjust+large_font_theme+
+                                        stat_summary(aes(label = str_c('n=',round(..y..,2)), y = stage(log10(VSVimprovement), after_stat = log10(.5))),fun=length, geom="text"),
                         paper_legend_plot_2col,nrow=1,rel_widths = c(4,2.5))
-ggsave(paste0(dir$manuscript_plots,'Figure_S4_ValencyMatching_Plot.pdf'), supp_plot_ValencyMatching, width=10,height=4)
+ggsave(paste0(dir$manuscript_plots,'Figure_S3_ValencyMatching_Plot.pdf'), supp_plot_ValencyMatching, width=10,height=4)
 
 
 
