@@ -11,9 +11,10 @@ library(ggpubr)
 library(lhs)
 library(mvtnorm)
 
+source('./WP4_modelImplementationFunctions.R')
 source('./helper_functions.R')
 source('./helper_functions_CIs.R')
-source('./WP4_modelImplementationFunctions.R')
+
 
 # Details for importing / saving data
 sheets = list(vsvdata = 'Sheet1'
