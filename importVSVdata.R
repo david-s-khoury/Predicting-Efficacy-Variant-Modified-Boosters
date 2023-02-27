@@ -11,10 +11,6 @@ library(ggpubr)
 library(lhs)
 library(mvtnorm)
 
-source('./WP4_modelImplementationFunctions.R')
-source('./helper_functions.R')
-source('./helper_functions_CIs.R')
-
 
 # Details for importing / saving data
 sheets = list(vsvdata = 'Sheet1'
@@ -30,6 +26,12 @@ dir = list(base = '../',
 files = list(vsvdata = paste0(dir$data,'MasterSheet_FoldChanges_github_resubmission.xlsx'))
 
 load(str_c(dir$data,'natmed_parameters_sympt_and_severe.RData'))
+
+source('./WP4_modelImplementationFunctions.R')
+source('./helper_functions.R')
+source('./helper_functions_CIs.R')
+
+
 # Plotting constants
 plot_type='pdf'
 plain_omicron_colour = 'tan'
